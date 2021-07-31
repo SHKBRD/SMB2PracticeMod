@@ -49,4 +49,6 @@ bool dir_pressed(Dir dir, bool priority = false); // Only works for cardinal dir
 bool dir_repeat(Dir dir, bool priority = false); // Only works for cardinal directions
 bool konami_pressed();
 
+void reset_repeat();
+
 }

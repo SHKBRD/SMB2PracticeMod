@@ -8,8 +8,6 @@
 #include "draw.h"
 #include "log.h"
 
-constexpr f32 clamp_256(f32 x) { return x < 0 ? 0 : (x > 255 ? 255 : x); }
-
 namespace menu
 {
 
@@ -25,6 +23,11 @@ static u32 s_cursor_frame = 0;
 constexpr u32 MENU_STACK_SIZE = 5;
 static MenuWidget *s_menu_stack[MENU_STACK_SIZE] = {&root_menu};
 static u32 s_menu_stack_ptr = 0;
+
+static bool s_widget_focused;
+static u32 s_focused_choice;
+
+constexpr f32 clamp_256(f32 x) { return x < 0 ? 0 : (x > 255 ? 255 : x); }
 
 static void push_menu(MenuWidget *menu)
 {
@@ -81,7 +84,28 @@ static u32 get_menu_selectable_widget_count(MenuWidget *menu)
 static void handle_widget_bind()
 {
     bool a_pressed = pad::button_pressed(mkb::PAD_BUTTON_A, true);
-    bool y_pressed = pad::button_pressed(mkb::PAD_BUTTON_Y, true);
+    bool b_pressed = pad::button_pressed(mkb::PAD_BUTTON_B, true);
+
+    // Prevent fast repeat when holding a diagonal
+    bool down_pressed = false;
+    if (pad::dir_down(pad::DIR_DOWN, true) && pad::dir_down(pad::DIR_RIGHT, true))
+    {
+        down_pressed = pad::dir_repeat(pad::DIR_DOWN, true);
+    }
+    else
+    {
+        down_pressed = pad::dir_repeat(pad::DIR_DOWN, true) || pad::dir_repeat(pad::DIR_RIGHT, true);
+    }
+
+    bool up_pressed = false;
+    if (pad::dir_down(pad::DIR_UP, true) && pad::dir_down(pad::DIR_LEFT, true))
+    {
+        up_pressed = pad::dir_repeat(pad::DIR_UP, true);
+    }
+    else
+    {
+        up_pressed = pad::dir_repeat(pad::DIR_UP, true) || pad::dir_repeat(pad::DIR_LEFT, true);
+    }
 
     Widget *selected = get_selected_widget();
     if (selected == nullptr) return;
@@ -100,11 +124,34 @@ static void handle_widget_bind()
         auto &choose = selected->choose;
         if (a_pressed)
         {
-            choose.set((choose.get() + 1) % choose.num_choices);
+            if (s_widget_focused)
+            {
+                choose.set(s_focused_choice);
+                s_widget_focused = false;
+                pad::reset_repeat();
+                s_cursor_frame = 0;
+            }
+            else
+            {
+                s_focused_choice = choose.get();
+                s_widget_focused = true;
+                pad::reset_repeat();
+                s_cursor_frame = 0;
+            }
         }
-        if (y_pressed)
+        if (down_pressed && s_widget_focused)
         {
-            choose.set((choose.get() + choose.num_choices - 1) % choose.num_choices);
+            s_focused_choice = (s_focused_choice + 1) % choose.num_choices;
+        }
+        if (up_pressed && s_widget_focused)
+        {
+            s_focused_choice = (s_focused_choice + choose.num_choices - 1) % choose.num_choices;
+        }
+        if (b_pressed && s_widget_focused)
+        {
+            s_widget_focused = false;
+            pad::reset_repeat();
+            s_cursor_frame = 0;
         }
         // TODO handle setting default value
     }
@@ -118,7 +165,7 @@ static void handle_widget_bind()
 void tick()
 {
     bool toggle = false;
-    if (pad::button_pressed(mkb::PAD_BUTTON_B, true))
+    if (!s_widget_focused && pad::button_pressed(mkb::PAD_BUTTON_B, true))
     {
         pop_menu();
         s_cursor_frame = 0;
@@ -137,7 +184,7 @@ void tick()
     MenuWidget *menu = s_menu_stack[s_menu_stack_ptr];
 
     // Update selected menu item
-    s32 dir_delta = pad::dir_repeat(pad::DIR_DOWN, true) - pad::dir_repeat(pad::DIR_UP, true);
+    s32 dir_delta = s_widget_focused ? 0 : pad::dir_repeat(pad::DIR_DOWN, true) - pad::dir_repeat(pad::DIR_UP, true);
     u32 selectable = get_menu_selectable_widget_count(menu);
     menu->selected_idx = (menu->selected_idx + dir_delta + selectable) % selectable;
 
@@ -270,20 +317,38 @@ void draw_menu_widget(MenuWidget *menu)
             }
             case WidgetType::Choose:
             {
-                draw::debug_text(
-                    MARGIN + PAD,
-                    y,
-                    menu->selected_idx == selectable_idx ? lerped_color : unfocused,
-                    "  %s",
-                    widget.choose.label);
-                draw::debug_text(
-                    MARGIN + PAD,
-                    y,
-                    menu->selected_idx == selectable_idx ? lerped_color : unfocused,
-                    "                        (%d/%d) %s",
-                    widget.choose.get() + 1,
-                    widget.choose.num_choices,
-                    widget.choose.choices[widget.choose.get()]);
+                if (s_widget_focused)
+                {
+                    draw::debug_text(
+                        MARGIN + PAD,
+                        y,
+                        unfocused,
+                        "  %s",
+                        widget.choose.label);
+                    draw::debug_text(
+                        MARGIN + PAD,
+                        y,
+                        menu->selected_idx == selectable_idx ? lerped_color : unfocused,
+                        "                        (%d/%d) %s",
+                        s_focused_choice + 1,
+                        widget.choose.num_choices,
+                        widget.choose.choices[s_focused_choice]);
+                }
+                else
+                {
+                    draw::debug_text(
+                        MARGIN + PAD,
+                        y,
+                        menu->selected_idx == selectable_idx ? lerped_color : unfocused,
+                        "  %s",
+                        widget.choose.label);
+                    draw::debug_text(
+                        MARGIN + PAD,
+                        y,
+                        menu->selected_idx == selectable_idx ? lerped_color : unfocused,
+                        "                        %s",
+                        widget.choose.choices[widget.choose.get()]);
+                }
 
                 if (menu->selected_idx == selectable_idx) cursor_y = y;
                 y += LINE_HEIGHT;

@@ -288,4 +288,9 @@ void tick()
     update_dir_times();
 }
 
+void reset_repeat()
+{
+    mkb::memset(s_dir_down_time, 0, sizeof(s_dir_down_time));
+}
+
 }
