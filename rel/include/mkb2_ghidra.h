@@ -6572,7 +6572,7 @@ extern "C" {
     int swap_gx_cpu_fifo(void);
     void wait_for_gp_read_idle(void);
     void gx_draw_done_callback_func(void);
-    void g_reset_some_gx_vtx_descs(void);
+    void g_set_gx_vtx_formats(void);
     void init_loched_cache(BOOL32 use_locked_cache);
     void * g_something_with_locked_cache(uint param_1);
     void g_make_arena_simulate_24mb_console(void);
@@ -8174,6 +8174,7 @@ extern "C" {
     int g_get_ape_flag(struct Ape * ape, undefined4 g_something_with_game, int param_3);
     void gan_setanim_e4(struct GApeAnim * param_1);
     void gan_setAnim2(struct Ape * ape, int param_2, short * param_3);
+    int g_some_ape_anim_func2(int param_1, int param_2, undefined4 param_3, undefined4 param_4, int param_5);
     void g_something_with_GXPeekZ(void);
     void empty_function(void);
     void g_init_rankings_to_defaults_wrapper(void);
@@ -8184,6 +8185,7 @@ extern "C" {
     void sprite_rank_tick(void);
     void sprite_rank_disp(undefined8 param_1, undefined8 param_2, undefined8 param_3, undefined8 param_4, undefined8 param_5, undefined8 param_6, undefined8 param_7, undefined8 param_8);
     void g_something_with_name_entry_get_course(int param_1);
+    void g_some_ape_anim_func1(struct Ape * ape);
     void g_something_with_loading_cutscenes(int param_1_00);
     uint g_something_to_do_with_cutscenes(int g_cutscene_id);
     void empty_function(void);

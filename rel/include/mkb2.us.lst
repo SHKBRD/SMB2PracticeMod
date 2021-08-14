@@ -2309,7 +2309,7 @@
 80064BD0:swap_gx_cpu_fifo
 80064C1C:wait_for_gp_read_idle
 80064C5C:gx_draw_done_callback_func
-80064C68:g_reset_some_gx_vtx_descs
+80064C68:g_set_gx_vtx_formats
 80064CC0:init_loched_cache
 80064E4C:g_something_with_locked_cache
 80064FE0:FUN_80064fe0
@@ -7164,7 +7164,7 @@
 803871F0:FUN_802b0fb8
 80387344:gan_setAnim2
 803874A0:FUN_802b1268
-80387584:FUN_802b134c
+80387584:g_some_ape_anim_func2
 80387778:FUN_802b1540
 80387958:FUN_802b1720
 8038797C:FUN_802b1744
@@ -7310,7 +7310,7 @@
 803AFED4:FUN_802d9c9c
 803AFF5C:FUN_802d9d24
 803B0114:FUN_802d9edc
-803B01AC:FUN_802d9f74
+803B01AC:g_some_ape_anim_func1
 803B038C:switchD
 803B0390:caseD_0
 803B0440:caseD_2

@@ -27,6 +27,8 @@ static u32 s_start_time;
 static u32 s_seg_time;
 
 static void (*s_g_reset_cm_course_tramp)();
+static void (*s_anim1_tramp)(mkb::Ape *ape);
+static int (*s_anim2_tramp)(int arg1, int arg2, u32 arg3, u32 arg4, int arg5);
 
 static mkb::CmEntry *s_overwritten_entry;
 static mkb::CmEntryType s_overwritten_entry_type;
@@ -390,6 +392,29 @@ void init()
         {
             s_g_reset_cm_course_tramp();
             if (s_state == State::SegActive) init_seg();
+        }
+    );
+
+    s_anim1_tramp = patch::hook_function(
+        mkb::g_some_ape_anim_func1, [](mkb::Ape *ape)
+        {
+            if (!((s_state == State::SegActive || s_state == State::SegComplete) && mkb::active_monkey_id > 3))
+            {
+                s_anim1_tramp(ape);
+            }
+        }
+    );
+    s_anim2_tramp = patch::hook_function(
+        mkb::g_some_ape_anim_func2, [](int arg1, int arg2, u32 arg3, u32 arg4, int arg5)
+        {
+            if (!((s_state == State::SegActive || s_state == State::SegComplete) && mkb::active_monkey_id > 3))
+            {
+                return s_anim2_tramp(arg1, arg2, arg3, arg4, arg5);
+            }
+            else
+            {
+                return 0;
+            }
         }
     );
 
