@@ -14,6 +14,7 @@
 #include "scratch.h"
 #include "tetris.h"
 #include "timer.h"
+#include "sfx.h"
 
 #include <mkb.h>
 
@@ -69,6 +70,7 @@ void init() {
     perform_assembly_patches();
 
     heap::init();
+    pref::init();
     draw::init();
     Tetris::get_instance().init();
     iw::init();
@@ -76,7 +78,7 @@ void init() {
     timer::init();
     inputdisp::init();
     cmseg::init();
-    pref::init();
+    sfx::init();
     scratch::init();
 
     s_draw_debug_text_trampoline = patch::hook_function(mkb::draw_debugtext, []() {
@@ -113,6 +115,7 @@ void init() {
         cmseg::tick();
         banans::tick();
         dpad::tick();
+        sfx::tick();
         scratch::tick();
     });
 }

@@ -40,4 +40,7 @@ void set_dpad_controls(bool on);
 bool get_debug_mode();
 void set_debug_mode(bool on);
 
+bool get_sfx_only();
+void set_sfx_only(bool on);
+
 }  // namespace pref

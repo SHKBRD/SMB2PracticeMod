@@ -1,8 +1,12 @@
-//
-// Created by ComplexPlane on 8/26/2021.
-//
+/*
+ * Mod for playing only sfx (muting background music).
+ */
 
-#ifndef APESPHERE_SFX_H
-#define APESPHERE_SFX_H
+#pragma once
 
-#endif //APESPHERE_SFX_H
+namespace sfx {
+
+void init();
+void tick();
+
+}
