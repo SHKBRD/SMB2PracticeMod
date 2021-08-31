@@ -19,6 +19,7 @@
 
 #include <banans.h>
 #include <cardio.h>
+#include <decomp.h>
 #include <dpad.h>
 #include <freeze.h>
 #include <cstring>
@@ -81,6 +82,7 @@ void init() {
     inputdisp::init();
     cmseg::init();
     freeze::init();
+    decomp::init();
     scratch::init();
 
     s_draw_debug_text_trampoline = patch::hook_function(mkb::draw_debugtext, []() {

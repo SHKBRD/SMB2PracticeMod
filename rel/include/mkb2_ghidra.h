@@ -1463,7 +1463,7 @@ typedef struct Camera Camera, *PCamera;
 
 struct Camera {
     struct Vec3f pos; /* Position of the camera */
-    struct Vec3f pivot; /* Called 'intr' in the debug menu. The point which the camera rotates around - the monkey in normal play, but can also be modified with the C-stick in test camera */
+    struct Vec3f pivot; /* Called 'intr' in the debug menu. The point which the camera looks at - close to the monkey in normal play, but can also be modified with the C-stick in test camera. Camera pose is actually controled by pos and rot - pivot is an intermediate value */
     struct Vec3s rot; /* Rotation of the camera. Called 'ang' in the debug menu */
     u8 mode; /* One byte representing camera mode (1 (dec) = SMB 1 style camera, 75 (dec) = SMB 2 style camera, and there's a lot more (everything from 1 to about 105 - a few are duplicates. Each value  corresponds to a different function in the camera function table */
     u8 submode; /* Called 'SUB' in the debug menu. Not sure of the purpose */
@@ -7283,7 +7283,7 @@ extern "C" {
     int g_maybe_related_to_music_crossfading(int param_1);
     undefined4 g_check_current_track(BgmTrack  track_id);
     void g_maybe_smth_with_music(int param_1, char param_2);
-    void g_change_music_volume(int param_1, int param_2, char volume);
+    void g_change_music_volume(s32 param_1, s32 param_2, u8 volume);
     void SoundEffectInit(void);
     void g_something_with_sound9(void);
     void g_smth_calls_sndAuxCallbackUpdateSettingsReverbHI(undefined4 * param_1);
