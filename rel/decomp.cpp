@@ -6,6 +6,9 @@
 
 namespace decomp {
 
+/*
+ * Post-goal camera animation
+ */
 static void camera_goal(mkb::Camera* camera, mkb::Ball* ball) {
     Vec3f ball_delta_camera = VEC_SUB2D(ball->pos, camera->pos);
     f32 dot = VEC_DOT(ball_delta_camera, camera->vel);  // Positive if camera moving towards ball
@@ -52,13 +55,31 @@ static void camera_goal(mkb::Camera* camera, mkb::Ball* ball) {
         }
     }
 
-    // Make camera look at pivot point
+    // Rotate the camera so it's looking at the pivot point
     mkb::ray_to_euler(&camera->pos, &camera->pivot, &camera->rot);
+}
+
+/*
+ * Post-fallout camera animation
+ */
+static void camera_fallout(mkb::Camera* camera, mkb::Ball* ball) {
+    camera->g_some_flag = 2;  // ??
+
+    // Slow camera to a halt, slowing Y faster than X and Z
+    // Maybe to make ball seem like it's receding away faster?
+    camera->vel.x *= 0.97f;
+    camera->vel.y *= 0.955f;
+    camera->vel.z *= 0.97f;
+
+    camera->pos = VEC_ADD(camera->pos, camera->vel);  // Apply camera velocity
+    camera->pivot = ball->pos;                        // Look directly at the ball's center
+    mkb::ray_to_euler(&camera->pos, &camera->pivot, &camera->rot);  // Look at pivot point
 }
 
 void init() {
     // Replace game's functions with our decompiled functions
     patch::hook_function(mkb::g_camera_func15_goal, camera_goal);
+    patch::hook_function(mkb::g_camera_func4_fallout, camera_fallout);
 }
 
 }  // namespace decomp
