@@ -689,7 +689,7 @@ typedef struct Vec3f Vec3f, *PVec3f;
 
 enum { /* Flags that mostly affect ball physics and controls */
     PHYS_NONE=0,
-    PHYS_G_ON_GROUND=1,
+    PHYS_ON_GROUND=1,
     PHYS_UNK_0x2=2,
     PHYS_UNK_0x4=4,
     PHYS_UNK_0x8=8,
@@ -1512,7 +1512,7 @@ struct Camera {
     Mtx g_some_mtx2;
     Mtx g_some_mtx3;
     Mtx g_some_mtx4;
-    s32 g_smth_with_standstill_counter;
+    u32 idx;
     undefined field_0x210[0x7c];
 } __attribute__((__packed__));
 
@@ -4927,7 +4927,7 @@ extern "C" {
     extern float g_camera_aspect_ratio;
     extern undefined1 g_related_to_fov2;
     extern undefined4 g_minigame_camera_func;
-    extern u16 g_standstill_camera_frame_counter;
+    extern s16 g_camera_standstill_counters[5];
     extern undefined4 g_maybe_something_with_lights;
     extern undefined4 g_light_group_stack;
     extern u8 num_light_groups;
@@ -6483,7 +6483,7 @@ extern "C" {
     void g_cvFsAddDev(char * param_1, undefined * param_2);
     undefined4 math_init(void);
     float CHUNK__math_rsqrt(float param_1, float param_2);
-    float math_sqrt(double param_1);
+    float math_sqrt(float param_1);
     float math_rsqrt(double param_1);
     float math_sqrt_rsqrt(double param_1, float * param_2);
     double g_math_unknown1(double param_1, double param_2);

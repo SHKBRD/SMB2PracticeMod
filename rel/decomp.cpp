@@ -7,6 +7,46 @@
 namespace decomp {
 
 /*
+ * Main gameplay camera
+ */
+static void camera_gameplay(mkb::Camera* camera, mkb::Ball* ball) {
+    Vec3f prev_pos = camera->pos;
+    Vec3f prev_pivot = camera->pivot;
+
+    // Update some sort of per-camera counter that counts up to 60 while character is still, and
+    // down to 0 while in motion
+    s16 standstill_counter = mkb::g_camera_standstill_counters[camera->idx];
+    if (ball->ape != nullptr) {
+        if (ball->ape->g_chara_anim_type == 4) {  // Character standing still?
+            standstill_counter++;
+            if (standstill_counter > 60) standstill_counter = 60;
+        } else {
+            standstill_counter--;
+            if (standstill_counter < 0) standstill_counter = 0;
+        }
+    }
+    mkb::g_camera_standstill_counters[camera->idx] = standstill_counter;
+
+    Vec3f g_some_delta = VEC_SUB(camera->g_some_vec3, camera->pivot);
+
+    // Normalize if it's not too close to zero length
+    f32 g_some_len_sq = VEC_LEN_SQ(g_some_delta);
+    if (g_some_len_sq <= 1.192092895507813e-07f) {
+        g_some_delta = {1, 0, 0};
+    } else {
+        f32 inv_len = mkb::math_rsqrt(g_some_len_sq);
+        g_some_delta = VEC_SCALE(inv_len, g_some_delta);
+    }
+
+    // Look at point slightly above ball
+    camera->pivot.x = ball->pos.x;
+    camera->pivot.y = ball->pos.y + 0.26;
+    camera->pivot.z = ball->pos.z;
+
+    g_some_delta = VEC_SUB(camera->pivot, VEC_ADD(VEC_SCALE(0.75f, g_some_delta), prev_pivot));
+}
+
+/*
  * Post-goal camera animation
  */
 static void camera_goal(mkb::Camera* camera, mkb::Ball* ball) {
@@ -74,6 +114,13 @@ static void camera_fallout(mkb::Camera* camera, mkb::Ball* ball) {
     camera->pos = VEC_ADD(camera->pos, camera->vel);  // Apply camera velocity
     camera->pivot = ball->pos;                        // Look directly at the ball's center
     mkb::ray_to_euler(&camera->pos, &camera->pivot, &camera->rot);  // Look at pivot point
+}
+
+/*
+ * Post-timeover camera animation
+ */
+static void camera_timeover(mkb::Camera* camera, mkb::Ball* ball) {
+    camera->vel = VEC_SCALE(0.92f, camera->vel);
 }
 
 void init() {
