@@ -169,4 +169,8 @@ namespace stobj_draw_fix {
 void init_main_loop();
 }
 
+namespace merge_heaps {
+void init_main_loop();
+}
+
 }
