@@ -1,10 +1,7 @@
 #pragma once
 
-#include <type_traits>
-
 #include <mkb.h>
-#include "heap.h"
-#include "log.h"
+#include <type_traits>
 
 namespace patch {
 
@@ -30,12 +27,14 @@ void hook_function_internal(void* func, void* dest, u32* tramp_instrs, void** tr
 /**
  * Run function `dest` in place of function `func`.
  *
- * Cannot call the original function `func` with this version.
+ * Use this version if you don't wish to call the original hooked function again.
  */
 template <typename Func, typename Dest>
 void hook_function(Func func, Dest dest) {
-    static_assert(std::is_assignable<Func&, Dest>::value);
-    hook_function_internal(reinterpret_cast<void*>(func), reinterpret_cast<void*>(dest));
+    // static_cast is to cast captureless lambda to function pointer and check that function types
+    // are compatible
+    hook_function_internal(reinterpret_cast<void*>(func),
+                           reinterpret_cast<void*>(static_cast<Func>(dest)));
 }
 
 /**
@@ -44,11 +43,11 @@ void hook_function(Func func, Dest dest) {
  */
 template <typename TrampFunc, typename Func, typename Dest>
 void hook_function(Tramp<TrampFunc>& tramp, Func func, Dest dest) {
-    static_assert(std::is_assignable<TrampFunc&, Func>::value);
-    static_assert(std::is_assignable<TrampFunc&, Dest>::value);
-    static_assert(std::is_assignable<Func&, Dest>::value);
-    hook_function_internal(reinterpret_cast<void*>(func), reinterpret_cast<void*>(dest),
-                           tramp.instrs, reinterpret_caast<void**>(&tramp.dest));
+    // static_cast is to cast captureless lambda to function pointer and check that function types
+    // are compatible
+    hook_function_internal(reinterpret_cast<void*>(static_cast<TrampFunc>(func)),
+                           reinterpret_cast<void*>(static_cast<TrampFunc>(dest)), tramp.instrs,
+                           reinterpret_cast<void**>(&tramp.dest));
 }
 
 }  // namespace patch

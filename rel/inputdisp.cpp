@@ -10,7 +10,7 @@
 
 namespace inputdisp {
 
-static void (*s_create_speed_sprites_tramp)(f32 x, f32 y);
+static patch::Tramp<decltype(&mkb::create_speed_sprites)> s_create_speed_sprites_tramp;
 
 static mkb::PADStatus s_raw_inputs[4];
 
@@ -97,8 +97,8 @@ static void set_sprite_visible(bool visible) {
 }
 
 void init() {
-    s_create_speed_sprites_tramp = patch::hook_function(
-        mkb::create_speed_sprites, [](f32 x, f32 y) { s_create_speed_sprites_tramp(x + 5, y); });
+    patch::hook_function(s_create_speed_sprites_tramp, mkb::create_speed_sprites,
+                         [](f32 x, f32 y) { s_create_speed_sprites_tramp.dest(x + 5, y); });
 }
 
 void on_PADRead(mkb::PADStatus* statuses) {

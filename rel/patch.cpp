@@ -1,7 +1,5 @@
 #include "patch.h"
 
-#include <mkb.h>
-
 namespace patch {
 
 void clear_dc_ic_cache(void* ptr, u32 size) {
