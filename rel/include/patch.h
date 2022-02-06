@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mkb.h>
-#include <type_traits>
 
 namespace patch {
 
