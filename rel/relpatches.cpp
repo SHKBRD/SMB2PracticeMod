@@ -214,15 +214,17 @@ namespace relpatches
     u16 WORLD_COUNT = 10;
 
     void relpatches::perfect_bonus::init() {
-        static void (*event_info_tick_trampoline)();
+        static patch::Tramp<decltype(&mkb::event_info_tick)> event_info_tick_tramp;
 
-        event_info_tick_trampoline = patch::hook_function(
-        mkb::event_info_tick, []() {
-            event_info_tick_trampoline();
-            if (mkb::mode_info.ball_mode == mkb::BALLMODE_ON_BONUS_STAGE && mkb::mode_info.bananas_remaining == 0) {
-                mkb::mode_info.ball_mode |= 0x228;
-            }
-        });
+        patch::hook_function(
+                event_info_tick_tramp,
+                mkb::event_info_tick, []() {
+                    event_info_tick_tramp.dest();
+                    if (mkb::mode_info.ball_mode == mkb::BALLMODE_ON_BONUS_STAGE &&
+                        mkb::mode_info.bananas_remaining == 0) {
+                        mkb::mode_info.ball_mode |= 0x228;
+                    }
+                });
     }
 
 
@@ -750,11 +752,11 @@ namespace relpatches
         static bool chara_heap_cleared;
         static mkb::SpriteTex* texes[10] = {};
         static u8 active_sprite_idx = 0.;
-        static void (*tex_load_trampoline)(mkb::SpriteTex *sprite_tex, char *file_path, u32 param_3, u16 width, u16 height, u32 format);
+        static patch::Tramp<decltype(&mkb::g_load_preview_texture)> tex_load_tramp;
 
         // Keeps track all preview image sprite pointers as they are loaded. Only 10 are loaded for story mode.
         void init_main_loop() {
-            tex_load_trampoline = patch::hook_function(mkb::g_load_preview_texture, [](mkb::SpriteTex *sprite_tex,char *file_path,u32 param_3,u16 width,u16 height,u32 format) {
+            patch::hook_function(tex_load_tramp, mkb::g_load_preview_texture, [](mkb::SpriteTex *sprite_tex,char *file_path,u32 param_3,u16 width,u16 height,u32 format) {
                 if (mkb::main_mode == mkb::MD_GAME || mkb::main_game_mode == mkb::STORY_MODE) {
                     if (active_sprite_idx > 9) {
                         for (int i = 0; i < 10; i++) {
@@ -766,7 +768,7 @@ namespace relpatches
                 texes[active_sprite_idx] = sprite_tex;
                 active_sprite_idx++;
                 }
-            tex_load_trampoline(sprite_tex, file_path, param_3, width, height, format);
+            tex_load_tramp.dest(sprite_tex, file_path, param_3, width, height, format);
             });
         }
 
@@ -838,8 +840,8 @@ namespace relpatches
     // Assumes the menu stage slot is 3 or 201.
     // TODO: If/when I make a patch/toggle for changing the menu BG stage slots, don't hardcode the value.
     namespace enable_menu_reflections {
-        static void (*load_stage_1_trampoline)(u32 id);
-        static void (*load_stage_2_trampoline)(u32 id);
+        static patch::Tramp<decltype(&mkb::queue_stage_load)> s_load_stage_1_tramp;
+        static patch::Tramp<decltype(&mkb::g_load_stage_2)> s_load_stage_2_tramp;
 
         void rendefc_handler(u32 stage_id) {
             if (mkb::main_mode == mkb::MD_SEL) {
@@ -857,22 +859,22 @@ namespace relpatches
         }
 
         void init_main_loop() {
-            load_stage_1_trampoline = patch::hook_function(
-                mkb::queue_stage_load, [](u32 stage_id) {
+            patch::hook_function(
+                s_load_stage_1_tramp, mkb::queue_stage_load, [](u32 stage_id) {
                     rendefc_handler(stage_id);
-                    load_stage_1_trampoline(stage_id);
+                    s_load_stage_1_tramp.dest(stage_id);
                 });
-            load_stage_2_trampoline = patch::hook_function(
-                mkb::g_load_stage_2, [](u32 stage_id) {
+            patch::hook_function(
+                s_load_stage_2_tramp, mkb::g_load_stage_2, [](u32 stage_id) {
                     rendefc_handler(stage_id);
-                    load_stage_2_trampoline(stage_id);
+                    s_load_stage_2_tramp.dest(stage_id);
                 });
         }
     }
 
     // Allows for the number of worlds in story mode to be customized.
     namespace custom_world_count {
-        static void (*sceneplay_init_trampoline)();
+        static patch::Tramp<decltype(&mkb::dmd_scen_sceneplay_init)> s_sceneplay_init_tramp;
 
         void init_main_game() {
             WORLD_COUNT = patches[Patches::CUSTOM_WORLD_COUNT].status;
@@ -882,8 +884,8 @@ namespace relpatches
             if (!patches[Patches::SKIP_CUTSCENES].status) {
                 mkb::OSReport("hooking sceneplay\n");
 
-                sceneplay_init_trampoline = patch::hook_function(
-                    mkb::dmd_scen_sceneplay_init, dmd_scen_sceneplay_init_patch);
+                patch::hook_function(s_sceneplay_init_tramp,
+                                     mkb::dmd_scen_sceneplay_init, dmd_scen_sceneplay_init_patch);
             }
 
         }
@@ -901,7 +903,7 @@ namespace relpatches
             if (mkb::g_storymode_next_world == WORLD_COUNT) {
                 mkb::g_storymode_next_world = 10;
             }
-            sceneplay_init_trampoline();
+            s_sceneplay_init_tramp.dest();
         }
 
 
