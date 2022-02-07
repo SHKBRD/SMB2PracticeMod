@@ -35,13 +35,14 @@ static patch::Tramp<decltype(&mkb::set_minimap_mode)> s_set_minimap_mode_tramp;
 void init() {
     // Hook set_minimap_mode() to prevent the minimap from being hidden on goal/fallout
     // This way the minimap is unaffected when loading savestates after goal/fallout
-    patch::hook_function(mkb::set_minimap_mode, [](mkb::MinimapMode mode) {
-        if (!pref::get_savestates() ||
-            !(mkb::main_mode == mkb::MD_GAME && mkb::main_game_mode == mkb::PRACTICE_MODE &&
-              mode == mkb::MINIMAP_SHRINK)) {
-            s_set_minimap_mode_tramp.dest(mode);
-        }
-    });
+    patch::hook_function(
+        s_set_minimap_mode_tramp, mkb::set_minimap_mode, [](mkb::MinimapMode mode) {
+            if (!pref::get_savestates() ||
+                !(mkb::main_mode == mkb::MD_GAME && mkb::main_game_mode == mkb::PRACTICE_MODE &&
+                  mode == mkb::MINIMAP_SHRINK)) {
+                s_set_minimap_mode_tramp.dest(mode);
+            }
+        });
 }
 
 static bool is_either_trigger_held() {
