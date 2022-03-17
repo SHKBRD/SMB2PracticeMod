@@ -14,6 +14,7 @@
 #include "scratch.h"
 #include "tetris.h"
 #include "timer.h"
+#include "replay.h"
 
 #include <mkb.h>
 
@@ -83,6 +84,7 @@ void init() {
     cmseg::init();
     freeze::init();
     sfx::init();
+    replay::init();
     scratch::init();
 
     s_draw_debug_text_trampoline = patch::hook_function(mkb::draw_debugtext, []() {
@@ -119,6 +121,7 @@ void init() {
         gotostory::tick();
         cmseg::tick();
         banans::tick();
+        replay::tick();
         scratch::tick();
     });
 
