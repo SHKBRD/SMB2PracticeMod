@@ -4776,6 +4776,8 @@ enum {
 };
 typedef undefined4 GXTexCoordID;
 
+typedef int (* __compar_fn_t)(void *, void *);
+
 typedef uchar uint8_t;
 
 typedef void *pointer;
@@ -7304,6 +7306,7 @@ extern "C" {
     char * longlong2str(uint param_1, uint param_2, int param_3, char * param_4);
     char * long2str(uint param_1, int param_2, char * param_3);
     char * parse_format(int param_1, char * param_2, uint * param_3);
+    void qsort(void * __base, size_t __nmemb, size_t __size, __compar_fn_t __compar);
     void srand(u32 seed);
     int rand(void);
     byte * __StringRead(byte * * param_1, byte * param_2, int param_3);

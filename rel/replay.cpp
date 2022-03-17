@@ -4,6 +4,7 @@
 
 #include "draw.h"
 #include "heap.h"
+#include "macro_utils.h"
 #include "memstore.h"
 #include "pad.h"
 #include "patch.h"
@@ -11,6 +12,10 @@
 #include "timer.h"
 
 namespace replay {
+
+struct S8Vec {
+    s8 x, y;
+};
 
 struct SaveState {
     bool active;
@@ -20,6 +25,9 @@ struct SaveState {
     u8 pause_menu_sprite_status;
     mkb::Sprite pause_menu_sprite;
 };
+
+// This could be halve as large by enumerating possible inputs instead
+static S8Vec s_possible_inputs[121 * 121];
 
 static SaveState s_state;
 
@@ -198,7 +206,42 @@ static void load_state() {
     destruct_distracting_effects();
 }
 
-void init() {}
+static u32 s8vec_dist_sq(const S8Vec& pt1, const S8Vec& pt2) {
+    s32 delta_x = static_cast<s32>(pt1.x) - static_cast<s32>(pt2.x);
+    s32 delta_y = static_cast<s32>(pt1.y) - static_cast<s32>(pt2.y);
+    return delta_x * delta_x + delta_y * delta_y;
+}
+
+static S8Vec s_comparison_pt;
+
+static void sort_inputs_by_dist(const S8Vec& comparison_pt) {
+    s_comparison_pt = comparison_pt;
+    mkb::qsort(s_possible_inputs, LEN(s_possible_inputs), sizeof(s_possible_inputs[0]),
+               [](void* pt1_void, void* pt2_void) {
+                   S8Vec* pt1 = static_cast<S8Vec*>(pt1_void);
+                   S8Vec* pt2 = static_cast<S8Vec*>(pt2_void);
+                   u32 dist1 = s8vec_dist_sq(*pt1, s_comparison_pt);
+                   u32 dist2 = s8vec_dist_sq(*pt2, s_comparison_pt);
+
+                   if (dist1 < dist2) return -1;
+                   if (dist1 > dist2) return 1;
+                   return 0;
+               });
+}
+
+void init() {
+    for (u32 i = 0; i < LEN(s_possible_inputs); i++) {
+        s8 x = static_cast<s8>(i % 121 - 61);
+        s8 y = static_cast<s8>(i / 121 - 61);
+        s_possible_inputs[i] = {x, y};
+    }
+
+    sort_inputs_by_dist({0, 0});
+
+    for (u32 i = 0; i < LEN(s_possible_inputs); i++) {
+        mkb::OSReport("Possible input: (%d, %d)\n", s_possible_inputs[i].x, s_possible_inputs[i].y);
+    }
+}
 
 void tick() {
     if (pad::button_pressed(mkb::PAD_BUTTON_X)) {
