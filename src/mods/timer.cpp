@@ -55,6 +55,12 @@ void disp() {
         timerdisp::draw_timer(s_rta_timer, "RTA:", 1, draw::WHITE, true);
         timerdisp::draw_timer(s_pause_timer, "PAU:", 2, draw::WHITE, true);
     }
+
+    if (s_pause_timer) {
+        draw::debug_text(380, 71, 
+        draw::WHITE, 
+        "PAUSED RUN");
+    }
 }
 
 void save_state(memstore::MemStore* store) {
